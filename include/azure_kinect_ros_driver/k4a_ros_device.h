@@ -24,6 +24,7 @@
 #include <k4a/k4a.hpp>
 #include <k4arecord/playback.hpp>
 #include <camera_info_manager/camera_info_manager.h>
+#include <dynamic_reconfigure/server.h>
 
 #if defined(K4A_BODY_TRACKING)
 #include <visualization_msgs/MarkerArray.h>
@@ -41,6 +42,7 @@
 //
 #include "azure_kinect_ros_driver/k4a_calibration_transform_data.h"
 #include "azure_kinect_ros_driver/k4a_ros_device_params.h"
+#include "azure_kinect_ros_driver/K4AROSDynamicConfig.h"
 
 class K4AROSDevice
 {
@@ -54,6 +56,8 @@ class K4AROSDevice
 
   void stopCameras();
   void stopImu();
+
+  k4a_result_t updateColorControlParams();
 
   k4a_result_t getDepthFrame(const k4a::capture& capture, sensor_msgs::ImagePtr& depth_frame, bool rectified);
 
@@ -90,6 +94,7 @@ k4a_result_t getBodyMarker(const k4abt_body_t& body, visualization_msgs::MarkerP
   k4a_result_t fillColorPointCloud(const k4a::image& pointcloud_image, const k4a::image& color_image,
                                    sensor_msgs::PointCloud2Ptr& point_cloud);
 
+  void dynamicConfigCallback(azure_kinect_ros_driver::K4AROSDynamicConfig &config, uint32_t level);
   void framePublisherThread();
 #if defined(K4A_BODY_TRACKING)
   void bodyPublisherThread();
@@ -146,6 +151,10 @@ k4a_result_t getBodyMarker(const k4abt_body_t& body, visualization_msgs::MarkerP
   ros::Publisher pointcloud_publisher_;
 
   std::shared_ptr<camera_info_manager::CameraInfoManager> ci_mngr_rgb_, ci_mngr_ir_;
+
+  azure_kinect_ros_driver::K4AROSDynamicConfig dynamic_reconfig_;
+  std::recursive_mutex dynrecfg_mutex_;
+  std::unique_ptr<dynamic_reconfigure::Server<azure_kinect_ros_driver::K4AROSDynamicConfig>> dynrecfg_server_;
 
 #if defined(K4A_BODY_TRACKING)
   ros::Publisher body_marker_publisher_;

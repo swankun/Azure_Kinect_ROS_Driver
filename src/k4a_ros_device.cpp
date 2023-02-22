@@ -441,6 +441,35 @@ void K4AROSDevice::stopImu()
   }
 }
 
+k4a_result_t K4AROSDevice::updateColorControlParams()
+{
+  if (!params_.auto_exposure && params_.exposure_time_us != 0)
+  {
+    k4a_device_.set_color_control(K4A_COLOR_CONTROL_EXPOSURE_TIME_ABSOLUTE, K4A_COLOR_CONTROL_MODE_MANUAL, params_.exposure_time_us);
+  } 
+  else
+  {
+    k4a_device_.set_color_control(K4A_COLOR_CONTROL_EXPOSURE_TIME_ABSOLUTE, K4A_COLOR_CONTROL_MODE_AUTO, 0);
+  }
+  // if (!params_.auto_whitebalance && params_.whitebalance != 0)
+  // {
+  //   k4a_device_.set_color_control(K4A_COLOR_CONTROL_WHITEBALANCE, K4A_COLOR_CONTROL_MODE_MANUAL, params_.whitebalance);
+  // } 
+  // else
+  // {
+  //   k4a_device_.set_color_control(K4A_COLOR_CONTROL_WHITEBALANCE, K4A_COLOR_CONTROL_MODE_AUTO, 0);
+  // }
+  // k4a_device_.set_color_control(K4A_COLOR_CONTROL_BRIGHTNESS, K4A_COLOR_CONTROL_MODE_MANUAL, params_.brightness);
+  // k4a_device_.set_color_control(K4A_COLOR_CONTROL_CONTRAST, K4A_COLOR_CONTROL_MODE_MANUAL, params_.contrast);
+  // k4a_device_.set_color_control(K4A_COLOR_CONTROL_SATURATION, K4A_COLOR_CONTROL_MODE_MANUAL, params_.saturation);
+  // k4a_device_.set_color_control(K4A_COLOR_CONTROL_SHARPNESS, K4A_COLOR_CONTROL_MODE_MANUAL, params_.sharpness);
+  // k4a_device_.set_color_control(K4A_COLOR_CONTROL_BACKLIGHT_COMPENSATION, K4A_COLOR_CONTROL_MODE_MANUAL, params_.backlight_compensation);
+  // k4a_device_.set_color_control(K4A_COLOR_CONTROL_GAIN, K4A_COLOR_CONTROL_MODE_MANUAL, params_.color_gain);
+  // k4a_device_.set_color_control(K4A_COLOR_CONTROL_POWERLINE_FREQUENCY, K4A_COLOR_CONTROL_MODE_MANUAL, params_.powerline_frequency);
+  
+  return K4A_RESULT_FAILED;
+}
+
 k4a_result_t K4AROSDevice::getDepthFrame(const k4a::capture& capture, sensor_msgs::ImagePtr& depth_image,
                                          bool rectified = false)
 {
@@ -962,6 +991,11 @@ k4a_result_t K4AROSDevice::renderBodyIndexMapToROS(sensor_msgs::ImagePtr body_in
 }
 #endif
 
+void K4AROSDevice::dynamicConfigCallback(azure_kinect_ros_driver::K4AROSDynamicConfig &config, uint32_t level)
+{
+  dynamic_reconfig_ = config;
+}
+
 void K4AROSDevice::framePublisherThread()
 {
   ros::Rate loop_rate(params_.fps);
@@ -1189,7 +1223,7 @@ void K4AROSDevice::framePublisherThread()
       if (params_.color_format == "jpeg")
       {
         if ((rgb_jpeg_publisher_.getNumSubscribers() > 0 || rgb_raw_camerainfo_publisher_.getNumSubscribers() > 0) &&
-            (k4a_device_ || capture.get_color_image() != nullptr))
+            updateColorControlParams() && (k4a_device_ || capture.get_color_image() != nullptr))
         {
           result = getJpegRgbFrame(capture, rgb_jpeg_frame);
 
@@ -1214,7 +1248,7 @@ void K4AROSDevice::framePublisherThread()
       else if (params_.color_format == "bgra")
       {
         if ((rgb_raw_publisher_.getNumSubscribers() > 0 || rgb_raw_camerainfo_publisher_.getNumSubscribers() > 0) &&
-            (k4a_device_ || capture.get_color_image() != nullptr))
+            updateColorControlParams() && (k4a_device_ || capture.get_color_image() != nullptr))
         {
           result = getRbgFrame(capture, rgb_raw_frame);
 

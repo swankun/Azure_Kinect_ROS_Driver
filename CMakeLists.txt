@@ -25,12 +25,17 @@ find_package(catkin REQUIRED COMPONENTS
   nodelet
   cv_bridge
   camera_info_manager
+  dynamic_reconfigure
 )
 
 find_package(OpenCV REQUIRED)
 ###################################
 ## catkin specific configuration ##
 ###################################
+generate_dynamic_reconfigure_options(
+  cfg/K4AROSDynamic.cfg
+)
+
 ## The catkin_package macro generates cmake config files for your package
 ## Declare things to be passed to dependent projects
 ## INCLUDE_DIRS: uncomment this if your package contains header files
@@ -38,7 +43,7 @@ find_package(OpenCV REQUIRED)
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
+ INCLUDE_DIRS include
 #  LIBRARIES k4a_ros_bridge
 #  CATKIN_DEPENDS roscpp std_msgs
 #  DEPENDS system_lib
@@ -59,6 +64,8 @@ add_executable(${PROJECT_NAME}_node
   src/k4a_calibration_transform_data.cpp
   )
 
+add_dependencies(${PROJECT_NAME}_node ${PROJECT_NAME}_gencfg)
+
 target_compile_features(${PROJECT_NAME}_node PUBLIC cxx_std_11)
 
 add_library(${PROJECT_NAME}_nodelet
@@ -67,6 +74,8 @@ add_library(${PROJECT_NAME}_nodelet
   src/k4a_ros_device_params.cpp
   src/k4a_calibration_transform_data.cpp
   )
+
+add_dependencies(${PROJECT_NAME}_nodelet ${PROJECT_NAME}_gencfg)
 
 target_compile_features(${PROJECT_NAME}_nodelet PUBLIC cxx_std_11)
 
@@ -217,7 +226,7 @@ include(Installk4a)
 
 include_directories(
   ${catkin_INCLUDE_DIRS}
-  "include"
+  include
 )
 
 target_link_libraries(${PROJECT_NAME}_node
@@ -258,6 +267,10 @@ install(
   launch
   urdf
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
+
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
 )
 
 install(FILES

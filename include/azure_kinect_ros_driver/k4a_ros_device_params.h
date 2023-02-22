@@ -57,7 +57,7 @@
              "Whether the RGB pointcloud is rendered in the depth frame (true) or RGB frame (false). Will either "     \
              "match the resolution of the depth camera (true) or the RGB camera (false)",                              \
              bool, true)                                                                                               \
-  LIST_ENTRY(calibration_url, 'URL to folder with calibration files (default: "file://$HOME/.ros/camera_info/").',    \
+  LIST_ENTRY(calibration_url, 'URL to folder with calibration files (default: "file://$HOME/.ros/camera_info/").',     \
              std::string, {})                                                                                          \
   LIST_ENTRY(tf_prefix, "The prefix prepended to tf frame ID's", std::string, std::string())                           \
   LIST_ENTRY(recording_file, "Path to a recording file to open instead of opening a device", std::string,              \
@@ -83,7 +83,13 @@
               int, 0)                                                                                                  \
   LIST_ENTRY(subordinate_delay_off_master_usec,                                                                        \
               "Delay subordinate camera off master camera by specified amount in usec.",                               \
-              int, 0)
+              int, 0)                                                                                                  \
+  LIST_ENTRY(auto_exposure,                                                                                            \
+              "Enable auto exposure",                                                                                  \
+              bool, true)                                                                                              \
+  LIST_ENTRY(exposure_time_us,                                                                                         \
+              "Set the image's exposure time in microseconds (requires auto_exposure = false).",                       \
+              int, 33330)
 
 class K4AROSDeviceParams
 {
